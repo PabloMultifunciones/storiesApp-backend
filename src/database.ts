@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export default function database() {
-    // let connectOptions:object  = {useMongoClient: true};
     const { MONGO_DB_URI, MONGO_DB_URI_TEST, NODE_ENV } = process.env;
 
     if (MONGO_DB_URI === undefined || MONGO_DB_URI_TEST === undefined) {
