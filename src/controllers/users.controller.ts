@@ -1,5 +1,6 @@
 import USER_MODEL from '../models/user.model';
 import { isValidateUser } from '../libs/validator.functions';
+import { generateAccessToken } from '../libs/general.functions';
 import {
     createPasswordHash,
     validatePassword,
@@ -15,11 +16,24 @@ export const saveUser = async (req: any, res: any) => {
 
     try {
         const RESPONSE = isValidateUser(params);
+
         if (RESPONSE.error) {
             res.json(RESPONSE);
             return;
         }
+
         const PASSWORD_HASHED = await createPasswordHash(params.password);
+
+        const TOKEN: string = generateAccessToken(params.password);
+
+        if (TOKEN === 'error') {
+            res.json({
+                error: true,
+                message:
+                    'Has ocurred an error during the generating of the access token',
+            });
+            return;
+        }
 
         const NEW_USER = {
             username: params.username,
@@ -35,6 +49,7 @@ export const saveUser = async (req: any, res: any) => {
         res.json({
             error: false,
             message: 'The user has been saved successfully',
+            token: TOKEN,
         });
     } catch {
         res.json({
@@ -50,6 +65,14 @@ export const loginUser = async (req: any, res: any) => {
     try {
         const USER = await USER_MODEL.findOne({ username: params.username });
 
+        if (USER === null) {
+            res.json({
+                error: true,
+                message: 'The user has not be found',
+            });
+            return;
+        }
+
         const IS_PASSWORD = validatePassword(params.password, USER.password);
 
         if (!IS_PASSWORD) {
@@ -60,9 +83,21 @@ export const loginUser = async (req: any, res: any) => {
             return;
         }
 
+        const TOKEN: string = generateAccessToken(params.password);
+
+        if (TOKEN === 'error') {
+            res.json({
+                error: true,
+                message:
+                    'Has ocurred an error during the generating of the access token',
+            });
+            return;
+        }
+
         res.json({
             error: false,
             message: 'The password is valid',
+            token: TOKEN,
         });
     } catch {
         res.json({
