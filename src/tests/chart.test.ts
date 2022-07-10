@@ -3,6 +3,24 @@ import mongoose from 'mongoose';
 import index from '../index';
 
 const api = supertest(index.app);
+let TOKEN: string;
+
+beforeAll(async () => {
+    const example = {
+        username: 'example',
+        password: 'example',
+        firstName: 'example',
+        lastName: 'example',
+    };
+    const {
+        body: { token },
+    } = await api
+        .post('/api/users')
+        .send(example)
+        .expect('Content-Type', /json/)
+        .expect(200);
+    TOKEN = token;
+});
 
 describe('Charts Test', () => {
     test('Get actions of the last day', async () => {
@@ -10,6 +28,7 @@ describe('Charts Test', () => {
             body: { error, actionsAmounts },
         } = await api
             .get('/api/historys/actionsLastDay')
+            .set('authorization', TOKEN)
             .expect('Content-Type', /json/)
             .expect(200);
 
@@ -22,6 +41,7 @@ describe('Charts Test', () => {
             body: { error, historysActivies, historysInactivies },
         } = await api
             .get('/api/historys/activies&inactivies')
+            .set('authorization', TOKEN)
             .expect('Content-Type', /json/)
             .expect(200);
 
@@ -35,6 +55,7 @@ describe('Charts Test', () => {
             body: { error, dates },
         } = await api
             .get('/api/historys/getCountHistorysCreates')
+            .set('authorization', TOKEN)
             .expect('Content-Type', /json/)
             .expect(200);
 

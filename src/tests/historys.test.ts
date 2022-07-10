@@ -3,6 +3,24 @@ import mongoose from 'mongoose';
 import index from '../index';
 
 const api = supertest(index.app);
+let TOKEN: string;
+
+beforeAll(async () => {
+    const example = {
+        username: 'example',
+        password: 'example',
+        firstName: 'example',
+        lastName: 'example',
+    };
+    const {
+        body: { token },
+    } = await api
+        .post('/api/users')
+        .send(example)
+        .expect('Content-Type', /json/)
+        .expect(200);
+    TOKEN = token;
+});
 
 describe('History Test', () => {
     let id: string;
@@ -10,6 +28,7 @@ describe('History Test', () => {
     test('Historys route has returned a json', async () => {
         await api
             .get('/api/historys')
+            .set('authorization', TOKEN)
             .expect('Content-Type', /json/)
             .expect(200);
     });
@@ -22,6 +41,7 @@ describe('History Test', () => {
         };
         const { body } = await api
             .post('/api/historys')
+            .set('authorization', TOKEN)
             .send(example)
             .expect(200);
 
@@ -38,11 +58,13 @@ describe('History Test', () => {
 
         await api
             .put('/api/historys/' + id)
+            .set('authorization', TOKEN)
             .send(HISTORY)
             .expect(200);
 
         const { body } = await api
             .get('/api/historys/' + id)
+            .set('authorization', TOKEN)
             .expect('Content-Type', /json/)
             .expect(200);
 
@@ -50,11 +72,17 @@ describe('History Test', () => {
     });
 
     test('History has been deleted succesfully', async () => {
-        const { body } = await api.delete('/api/historys/' + id).expect(200);
+        const { body } = await api
+            .delete('/api/historys/' + id)
+            .set('authorization', TOKEN)
+            .expect(200);
 
         expect(body.error).toBe(false);
 
-        await api.get('/api/historys' + id).expect(404);
+        await api
+            .get('/api/historys' + id)
+            .set('authorization', TOKEN)
+            .expect(404);
     });
 });
 
