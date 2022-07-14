@@ -10,7 +10,7 @@ export const createPasswordHash = async (password: string): Promise<string> => {
 export const validatePassword = async (
     password: string,
     passwordHash: string
-): Promise<boolean> => {
+): Promise<any> => {
     const isValidPassword = await bcryptjs.compare(password, passwordHash);
     return isValidPassword;
 };

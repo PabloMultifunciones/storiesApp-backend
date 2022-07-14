@@ -22,6 +22,17 @@ export const saveUser = async (req: any, res: any) => {
             return;
         }
 
+        const EXIST_USER =
+            (await USER_MODEL.findOne({ username: params.username })) !== null;
+
+        if (EXIST_USER) {
+            res.json({
+                error: true,
+                message: 'Already exist a user with the same username',
+            });
+            return;
+        }
+
         const PASSWORD_HASHED = await createPasswordHash(params.password);
 
         const TOKEN: string = generateAccessToken(params.password);
@@ -73,7 +84,10 @@ export const loginUser = async (req: any, res: any) => {
             return;
         }
 
-        const IS_PASSWORD = validatePassword(params.password, USER.password);
+        const IS_PASSWORD = await validatePassword(
+            params.password,
+            USER.password
+        );
 
         if (!IS_PASSWORD) {
             res.json({
@@ -96,8 +110,11 @@ export const loginUser = async (req: any, res: any) => {
 
         res.json({
             error: false,
-            message: 'The password is valid',
+            message: 'Access granted',
             token: TOKEN,
+            userpasswordd: USER.password,
+            paramspassword: params.password,
+            ispassword: IS_PASSWORD,
         });
     } catch {
         res.json({
